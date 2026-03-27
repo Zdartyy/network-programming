@@ -47,16 +47,26 @@ int main(void) {
         else if (n >= 1 && buf[n-1] == '\n')                 n -= 1;
         buf[n] = '\0';
 
+        if (n > 0 && (buf[0] == ' ' || buf[n-1] == ' ')) {
+            sendto(sock, "ERROR", 5, 0,
+                   (struct sockaddr *)&client_addr, client_len);
+            continue;
+        }
+
         int valid = 1;
         for (int i = 0; i < n; i++) {
             if (!isalpha((unsigned char)buf[i]) && buf[i] != ' ') {
                 valid = 0;
                 break;
             }
+            if (buf[i] == ' ' && buf[i+1] == ' ') {
+                valid = 0;
+                break;
+            }
         }
 
         if (!valid) {
-            sendto(sock, "ERROR\r\n", 7, 0,
+            sendto(sock, "ERROR", 5, 0,
                    (struct sockaddr *)&client_addr, client_len);
             continue;
         }
@@ -76,13 +86,11 @@ int main(void) {
         }
 
         char response[64];
-        int resp_len = snprintf(response, sizeof(response), "%d/%d\r\n", palindromes, total);
+        int resp_len = snprintf(response, sizeof(response), "%d/%d", palindromes, total);
 
         sendto(sock, response, resp_len, 0,
                (struct sockaddr *)&client_addr, client_len);
 
         printf("Zapytanie: \"%s\" → %s", buf, response);
     }
-    // TODO: walidacja spacji na początku i końcu bufora
-    // TODO: walidacja podwójnych spacji
 }
