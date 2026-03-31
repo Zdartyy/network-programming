@@ -59,7 +59,7 @@ int main(void) {
                 valid = 0;
                 break;
             }
-            if (buf[i] == ' ' && buf[i+1] == ' ') {
+            if (buf[i] == ' ' && i + 1 < n && buf[i+1] == ' ') {
                 valid = 0;
                 break;
             }
@@ -91,6 +91,6 @@ int main(void) {
         sendto(sock, response, resp_len, 0,
                (struct sockaddr *)&client_addr, client_len);
 
-        printf("Zapytanie: \"%s\" → %s", buf, response);
+        printf("Zapytanie: \"%s\" → %s\n", buf, response);
     }
 }
