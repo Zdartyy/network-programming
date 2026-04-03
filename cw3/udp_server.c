@@ -48,8 +48,9 @@ int main(void) {
         buf[n] = '\0';
 
         if (n > 0 && (buf[0] == ' ' || buf[n-1] == ' ')) {
-            sendto(sock, "ERROR", 5, 0,
-                   (struct sockaddr *)&client_addr, client_len);
+            if (sendto(sock, "ERROR", 5, 0,
+                       (struct sockaddr *)&client_addr, client_len) == -1)
+                perror("sendto");
             continue;
         }
 
@@ -66,8 +67,9 @@ int main(void) {
         }
 
         if (!valid) {
-            sendto(sock, "ERROR", 5, 0,
-                   (struct sockaddr *)&client_addr, client_len);
+            if (sendto(sock, "ERROR", 5, 0,
+                       (struct sockaddr *)&client_addr, client_len) == -1)
+                perror("sendto");
             continue;
         }
 
@@ -88,8 +90,9 @@ int main(void) {
         char response[64];
         int resp_len = snprintf(response, sizeof(response), "%d/%d", palindromes, total);
 
-        sendto(sock, response, resp_len, 0,
-               (struct sockaddr *)&client_addr, client_len);
+        if (sendto(sock, response, resp_len, 0,
+                   (struct sockaddr *)&client_addr, client_len) == -1)
+            perror("sendto");
 
         printf("Zapytanie: \"%s\" → %s\n", buf, response);
     }
