@@ -41,8 +41,6 @@ int main(void) {
         ssize_t n = recvfrom(sock, buf, sizeof(buf) - 1, 0, (struct sockaddr *)&client_addr, &client_len);
         if (n == -1) { perror("recvfrom"); continue; }
 
-        buf[n] = '\0';
-
         if (n >= 2 && buf[n-2] == '\r' && buf[n-1] == '\n') n -= 2;
         else if (n >= 1 && buf[n-1] == '\n')                 n -= 1;
         buf[n] = '\0';
