@@ -5,10 +5,10 @@ import json
 URL = "https://api.discogs.com/artists"
 
 
-def get_artist_info(artist_id: str) -> dict | None:
-    url = f"https://api.discogs.com/artists/{artist_id}"
-    try:
+def get_json(url: str) -> dict | None:
+    try: 
         response = requests.get(url, timeout=10, headers={"User-Agent": "ApplicationToLearn/0.1"})
+        
     except requests.RequestException as e:
         print(f"fail: {e}")
         return None
@@ -23,48 +23,50 @@ def get_artist_info(artist_id: str) -> dict | None:
         print("fail: response is not valid JSON")
         return None
 
+    return data
+
+
+def get_artist_info(artist_id: str) -> dict | None:
+
+    url = f"{URL}/{artist_id}"
+    data = get_json(url)
+
+    if not data:
+        return None
+
     return {
         "id": artist_id,
         "name": data.get("name", "Unknown"),
         "groups": data.get("groups", []),
     }
 
-def search_albums(url: str, artist_id: str) -> list:
-    try:
-        new_url = f"{url}/{artist_id}/releases"
+def find_common_groups(artists: list) -> None:
 
-        response = requests.get(new_url, timeout=10, headers={"User-Agent":"ApplicationToLearn/0.1"})
-    
-    except requests.exceptions.Timeout:
-        print(f"fail: cannot connect to {url}")
-        return 1
+    groups_by_artist = {}
+    for artist in artists:
 
-    except requests.RequestException as e:
-        print(f"fail: Request error: {e}")
-        return 1
-    
-    if response.status_code != 200:
-        print(f"fail: server responded with status code: {response.status_code}")
-        return 1
+        group_names = {g["name"] for g in artist["groups"]}
 
-    try:
-        data = response.json()
-    
-    except ValueError:
-        print("fail: response is not valid JSON")
-        return 1
+        groups_by_artist[artist["name"]] = group_names
+
+    names = list(groups_by_artist.keys())
+
+    found_common = False
 
 
-#    print(data.keys())
-#    for key,value in data.items().artist:
-#        print(f"{key}: {value}")
+    for i in range(len(names)):
+        for j in range(i + 1, len(names)):
+            name_a = names[i]
+            name_b = names[j]
+            common = groups_by_artist[name_a] & groups_by_artist[name_b]
 
-    # print(json.dumps(data["releases"], indent=2))
+            if common:
+                found_common = True
+                print(f"{name_a} and {name_b} played together in: {', '.join(common)}")
 
-    for release in data["releases"]:
-        print(f"Title: {release['title']}")
+    if not found_common:
+        print("No common groups found among the provided artists.")
 
-    # print(data)
 
 if __name__ == "__main__":
 
@@ -78,10 +80,13 @@ if __name__ == "__main__":
             print("Please, provide at least one artist")
 
 
-    # for artist_id in artist_ids:
-    #     search_albums(URL, artist_id)
+    artists = []
 
     for artist_id in artist_ids:
         info = get_artist_info(artist_id)
         if info:
-            print(f"{info['name']}: {[g['name'] for g in info['groups']]}")
+            artists.append(info)
+
+
+    find_common_groups(artists)
+
